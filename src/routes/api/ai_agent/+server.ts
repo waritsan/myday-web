@@ -1,11 +1,10 @@
 import type { RequestHandler } from './$types';
-import { API_ENDPOINT } from '$env/static/private';
 
 export const POST: RequestHandler = async ({ request }) => {
 	try {
 		const body = await request.json();
 
-		const apiEndpoint = API_ENDPOINT || 'http://localhost:7071/api/ai_agent';
+		const apiEndpoint = process.env.API_ENDPOINT || 'http://localhost:7071/api/ai_agent';
 
 		const response = await fetch(apiEndpoint, {
 			method: 'POST',

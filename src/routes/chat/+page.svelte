@@ -146,7 +146,7 @@
 			placeholder="Type your message... (Shift+Enter for new line, Enter to send)"
 			disabled={isLoading}
 			on:keypress={handleKeyPress}
-		/>
+		></textarea>
 		<button on:click={sendMessage} disabled={isLoading || !inputValue.trim()}>
 			{isLoading ? 'Sending...' : 'Send'}
 		</button>
