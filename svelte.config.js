@@ -9,7 +9,7 @@ const config = {
 			strict: false
 		}),
 		prerender: {
-			entries: ['/chat']
+			entries: ['/', '/chat']
 		}
 	}
 };
