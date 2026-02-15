@@ -54,11 +54,7 @@
 					'Content-Type': 'application/json'
 				},
 				body: JSON.stringify({
-					message: userMessage.content,
-					conversationHistory: messages.slice(0, -1).map(m => ({
-						role: m.role,
-						content: m.content
-					}))
+					message: userMessage.content
 				})
 			});
 

@@ -25,17 +25,7 @@ API_ENDPOINT=https://myday-fmdjg7hhcccedwgw.southeastasia-01.azurewebsites.net/a
 
 ```json
 {
-  "message": "User message",
-  "conversationHistory": [
-    {
-      "role": "user",
-      "content": "Previous message"
-    },
-    {
-      "role": "assistant",
-      "content": "Previous response"
-    }
-  ]
+  "message": "User message"
 }
 ```
 
