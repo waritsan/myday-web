@@ -88,7 +88,20 @@ module.exports = async function (context, req) {
             return;
         }
 
-        const data = JSON.parse(responseData.data);
+        let data;
+        try {
+            data = JSON.parse(responseData.data);
+        } catch (parseError) {
+            context.log('Error parsing JSON response:', parseError);
+            context.res = {
+                status: 500,
+                body: {
+                    error: 'Invalid JSON response from API'
+                }
+            };
+            return;
+        }
+        
         context.res = {
             status: 200,
             body: data
