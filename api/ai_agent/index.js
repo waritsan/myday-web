@@ -17,7 +17,8 @@ module.exports = async function (context, req) {
         const body = req.body;
         
         // API_ENDPOINT should be configured in Azure Static Web Apps environment variables
-        // Example: https://myday-fmdjg7hhcccedwgw.southeastasia-01.azurewebsites.net/api/ai_agent
+        // It must include the full URL with authentication code query parameter
+        // Example: https://myday-fmdjg7hhcccedwgw.southeastasia-01.azurewebsites.net/api/ai_agent?code=YOUR_KEY
         const apiEndpoint = process.env.API_ENDPOINT;
         
         if (!apiEndpoint) {
@@ -36,6 +37,10 @@ module.exports = async function (context, req) {
         // Parse the URL
         const parsedUrl = new URL(apiEndpoint);
         const protocol = parsedUrl.protocol === 'https:' ? https : http;
+        
+        // Log sanitized URL (without exposing full query parameters)
+        const sanitizedUrl = `${parsedUrl.protocol}//${parsedUrl.hostname}${parsedUrl.pathname}${parsedUrl.search ? '?...' : ''}`;
+        context.log('Parsed URL:', sanitizedUrl);
         
         // Prepare request data
         const postData = JSON.stringify(body);
@@ -79,10 +84,19 @@ module.exports = async function (context, req) {
 
         if (responseData.statusCode < 200 || responseData.statusCode >= 300) {
             context.log('API error:', responseData.statusCode, responseData.data);
+            
+            // Check for common authentication errors
+            let errorMessage = `API returned ${responseData.statusCode}: ${responseData.statusMessage}`;
+            if (responseData.statusCode === 401) {
+                errorMessage += ' (Authentication failed - check if API_ENDPOINT includes the correct authentication code)';
+            } else if (responseData.statusCode === 403) {
+                errorMessage += ' (Access forbidden - verify the authentication code is valid)';
+            }
+            
             context.res = {
                 status: responseData.statusCode,
                 body: {
-                    error: `API returned ${responseData.statusCode}: ${responseData.statusMessage}`
+                    error: errorMessage
                 }
             };
             return;
