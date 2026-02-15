@@ -1,4 +1,6 @@
-const fetch = require('node-fetch');
+const https = require('https');
+const http = require('http');
+const { URL } = require('url');
 
 module.exports = async function (context, req) {
     context.log('AI Agent proxy function triggered');
@@ -31,27 +33,62 @@ module.exports = async function (context, req) {
 
         context.log('Calling external API:', apiEndpoint);
 
-        const response = await fetch(apiEndpoint, {
+        // Parse the URL
+        const parsedUrl = new URL(apiEndpoint);
+        const protocol = parsedUrl.protocol === 'https:' ? https : http;
+        
+        // Prepare request data
+        const postData = JSON.stringify(body);
+        
+        const options = {
+            hostname: parsedUrl.hostname,
+            port: parsedUrl.port || (parsedUrl.protocol === 'https:' ? 443 : 80),
+            path: parsedUrl.pathname + parsedUrl.search,
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(body)
+                'Content-Type': 'application/json',
+                'Content-Length': Buffer.byteLength(postData)
+            }
+        };
+
+        // Make the request using native Node.js modules
+        const responseData = await new Promise((resolve, reject) => {
+            const request = protocol.request(options, (response) => {
+                let data = '';
+                
+                response.on('data', (chunk) => {
+                    data += chunk;
+                });
+                
+                response.on('end', () => {
+                    resolve({
+                        statusCode: response.statusCode,
+                        statusMessage: response.statusMessage,
+                        data: data
+                    });
+                });
+            });
+            
+            request.on('error', (error) => {
+                reject(error);
+            });
+            
+            request.write(postData);
+            request.end();
         });
 
-        if (!response.ok) {
-            const errorText = await response.text();
-            context.log('API error:', response.status, errorText);
+        if (responseData.statusCode < 200 || responseData.statusCode >= 300) {
+            context.log('API error:', responseData.statusCode, responseData.data);
             context.res = {
-                status: response.status,
+                status: responseData.statusCode,
                 body: {
-                    error: `API returned ${response.status}: ${response.statusText}`
+                    error: `API returned ${responseData.statusCode}: ${responseData.statusMessage}`
                 }
             };
             return;
         }
 
-        const data = await response.json();
+        const data = JSON.parse(responseData.data);
         context.res = {
             status: 200,
             body: data
