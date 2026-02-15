@@ -6,10 +6,11 @@ const config = {
 		adapter: adapter({
 			out: 'build',
 			precompress: false,
-			strict: false
+			strict: false,
+			fallback: 'index.html'
 		}),
 		prerender: {
-			entries: ['/', '/chat']
+			entries: []
 		}
 	}
 };
