@@ -11,7 +11,21 @@ module.exports = async function (context, req) {
 
     try {
         const body = req.body;
-        const apiEndpoint = process.env.API_ENDPOINT || 'http://localhost:7071/api/ai_agent';
+        
+        // API_ENDPOINT should be configured in Azure Static Web Apps environment variables
+        // Example: https://myday-fmdjg7hhcccedwgw.southeastasia-01.azurewebsites.net/api/ai_agent
+        const apiEndpoint = process.env.API_ENDPOINT;
+        
+        if (!apiEndpoint) {
+            context.log.error('API_ENDPOINT environment variable is not set');
+            context.res = {
+                status: 500,
+                body: {
+                    error: 'API endpoint is not configured. Please set the API_ENDPOINT environment variable.'
+                }
+            };
+            return;
+        }
 
         context.log('Calling external API:', apiEndpoint);
 
